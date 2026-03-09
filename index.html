@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIDSNAシッター 見積もりフロープロトタイプ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-color: #CDA250;
+            --sub-color-1: #F3A589;
+            --sub-color-2: #F5B847;
+            --bg-gray: #F8F8F8;
+            --teal-accent: #58C5BA;
+            --text-main: #333333;
+            --text-sub: #8E8E93;
+        }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            color: var(--text-main);
+        }
+        .app-container {
+            width: 100%;
+            max-width: 414px;
+            height: 100vh;
+            background-color: #fff;
+            position: relative;
+            overflow-y: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .btn-main {
+            background-color: var(--main-color);
+            color: white;
+            font-weight: bold;
+            border-radius: 9999px;
+            padding: 16px 24px;
+            width: 100%;
+            transition: opacity 0.2s;
+            box-shadow: 0 4px 6px rgba(205, 162, 80, 0.2);
+        }
+        .btn-main:active {
+            opacity: 0.8;
+        }
+        .btn-outline {
+            border: 1px solid #E5E5E5;
+            color: #666;
+            font-weight: bold;
+            border-radius: 9999px;
+            padding: 12px 24px;
+            width: 100%;
+            text-align: center;
+            background: white;
+        }
+        .header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #F2F2F2;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 20;
+            height: 56px;
+        }
+        .back-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin-right: 8px;
+            color: #999;
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 24px 0;
+            background: #fff;
+        }
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #E0E0E0;
+            position: relative;
+        }
+        .step-dot.active {
+            background-color: var(--main-color);
+        }
+        .step-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 20px;
+            height: 1px;
+            background-color: #E0E0E0;
+        }
+        .step-dot:last-child::after { display: none; }
+        .step-label {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            white-space: nowrap;
+            color: #999;
+            font-weight: bold;
+        }
+        .step-dot.active .step-label {
+            color: var(--main-color);
+        }
+        .badge-required {
+            background-color: #D66D67;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+        .custom-input {
+            width: 100%;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            appearance: none;
+        }
+        .select-wrapper {
+            position: relative;
+        }
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid #CCC;
+            border-bottom: 2px solid #CCC;
+            transform: translateY(-70%) rotate(45deg);
+            pointer-events: none;
+        }
+        .timeline-card {
+            background: #FAFAFA;
+            border-left: 4px solid var(--teal-accent);
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -11px;
+            top: 18px;
+            width: 18px;
+            height: 18px;
+            background: var(--teal-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            border: 2px solid #fff;
+        }
+        .shadow-up {
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+        }
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+    <!-- Screen 1: メッセージ画面 -->
+    <div id="screen-1" class="screen">
+        <div class="header">
+            <button class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="flex items-center flex-1">
+                <div class="w-9 h-9 rounded-full overflow-hidden mr-3 border border-gray-100">
+                    <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                </div>
+                <span class="font-bold text-[15px]">渋谷 さとみ さん</span>
+            </div>
+            <button onclick="nextScreen(2)" class="bg-[#E5E5E5] text-[10px] px-3 py-1.5 rounded-full font-bold text-gray-600">見積もり作成</button>
+            <button class="ml-3">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+        </div>
+        
+        <div class="p-4 space-y-6">
+            <div class="text-center text-[11px] text-gray-400 my-4">3/11(金)</div>
+            
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-full overflow-hidden mr-2 flex-shrink-0">
+                    <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                </div>
+                <div class="bg-[#F2F2F2] p-4 rounded-2xl rounded-tl-none max-w-[75%] text-[14px] leading-relaxed">
+                    いつもお世話になっております。来週水曜日、先週と同じく17時から20時まで3時間で太郎の送迎から自宅保育をお願いできますでしょうか？
+                </div>
+                <div class="self-end text-[10px] text-gray-400 ml-1 mb-1">8:54</div>
+            </div>
+
+            <div class="flex flex-col items-end">
+                <div class="flex items-end">
+                    <div class="text-[10px] text-gray-400 mr-1 mb-1">既読 9:00</div>
+                    <div class="bg-[#F9EED9] p-4 rounded-2xl rounded-tr-none max-w-[85%] text-[14px] leading-relaxed">
+                        承知しました。私の方から見積もりを送らせていただきますね。
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-full overflow-hidden mr-2 flex-shrink-0">
+                    <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                </div>
+                <div class="bg-[#F2F2F2] p-4 rounded-2xl rounded-tl-none max-w-[75%] text-[14px] leading-relaxed">
+                    ありがとうございます。よろしくお願いします！
+                </div>
+                <div class="self-end text-[10px] text-gray-400 ml-1 mb-1">9:02</div>
+            </div>
+        </div>
+        
+        <div class="fixed bottom-0 w-full max-w-[414px] p-3 bg-white border-t flex items-center gap-5">
+            <button class="text-gray-400"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg></button>
+            <button class="text-gray-400"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
+            <div class="flex-1 bg-[#F5F5F5] rounded-full px-5 py-2.5 text-sm text-gray-400">丁寧なメッセージを心がけましょう</div>
+            <button class="text-gray-300 transform rotate-45"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg></button>
+        </div>
+    </div>
+
+    <!-- Screen 2: 見積もり作成画面 -->
+    <div id="screen-2" class="screen hidden">
+        <div class="header">
+            <button onclick="nextScreen(1)" class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="flex-1 text-center font-bold text-[16px]">見積もり作成</div>
+            <div class="w-10"></div>
+        </div>
+        <div class="step-indicator">
+            <div class="step-dot active"><span class="step-label">条件入力</span></div>
+            <div class="step-dot"><span class="step-label">確認</span></div>
+            <div class="step-dot"><span class="step-label">完了</span></div>
+        </div>
+        <div class="p-4 pb-32">
+            <div class="bg-[#FDF8F1] rounded-xl p-4 mb-8 flex items-start border border-[#F2EADA]">
+                <div class="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-white shadow-sm">
+                    <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                </div>
+                <div class="text-[13px]">
+                    <div class="font-bold mb-1 text-[15px]">渋谷 さとみ さん</div>
+                    <div class="text-gray-500 leading-relaxed">
+                        東京都渋谷区恵比寿4-9-10<br>ネクストビートマンション202<br>090-1234-5678
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-6">
+                <div class="input-group">
+                    <div class="label">依頼日 <span class="badge-required">必須</span></div>
+                    <div class="select-wrapper">
+                        <select class="custom-input text-gray-400">
+                            <option value="">選択してください</option>
+                            <option value="2026/03/18">2026/03/18(水)</option>
+                            <option value="2026/03/19">2026/03/19(木)</option>
+                            <option value="2026/03/20">2026/03/20(金)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="label">依頼時間 <span class="badge-required">必須</span></div>
+                    <div class="flex items-center gap-2">
+                        <div class="select-wrapper flex-1">
+                            <select class="custom-input text-center text-gray-400">
+                                <option value="">選択</option>
+                                <option value="17:00">17:00</option>
+                            </select>
+                        </div>
+                        <span class="text-gray-400">〜</span>
+                        <div class="select-wrapper flex-1">
+                            <select class="custom-input text-center text-gray-400">
+                                <option value="">選択</option>
+                                <option value="20:00">20:00</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="label">子ども <span class="badge-required">必須</span></div>
+                    <div class="select-wrapper">
+                        <select class="custom-input text-gray-400">
+                            <option value="">選択してください</option>
+                            <option value="taro">太郎 (2歳)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="font-bold text-[14px] mb-3">シッティング内容 <span class="badge-required">必須</span></div>
+                    <textarea class="custom-input h-28" placeholder="ご記入ください。"></textarea>
+                </div>
+
+                <div class="font-bold text-[16px] pt-4 border-t border-gray-100">ご利用料金 お見積もり</div>
+                
+                <div class="flex justify-between items-center text-sm">
+                    <span class="font-bold text-[14px]">往復交通費 <span class="badge-required">必須</span></span>
+                    <div class="flex items-center">
+                        <input type="number" placeholder="0" class="text-right border-b w-16 mr-1 outline-none font-bold"> 円
+                    </div>
+                </div>
+                <div>
+                    <div class="font-bold text-[14px] mb-2">詳細 <span class="badge-required">必須</span></div>
+                    <textarea class="custom-input h-24 text-[12px] leading-relaxed" placeholder="例）行き：JR山手線 池袋駅〜新宿駅(IC) 157円&#10;帰り：終電後タクシー利用予定"></textarea>
+                </div>
+
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">割増料金</span>
+                    <div class="flex items-center text-gray-700">
+                        +<input type="number" placeholder="0" class="text-right border-b w-16 mr-1 outline-none font-bold"> 円
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-600">割引料金</span>
+                    <div class="flex items-center text-red-500">
+                        -<input type="number" placeholder="0" class="text-right border-b w-16 mr-1 outline-none font-bold text-red-500"> 円
+                    </div>
+                </div>
+
+                <div>
+                    <div class="font-bold text-[14px] mb-2">備考欄</div>
+                    <input type="text" class="custom-input" placeholder="ご自由にご入力ください">
+                </div>
+
+                <div class="pt-6 border-t-2 border-gray-900">
+                    <div class="flex justify-between items-end mb-4">
+                        <span class="font-bold text-[15px]">受け取り金額 <span class="text-[10px] font-normal text-gray-400">(税込)</span></span>
+                        <span class="text-2xl font-bold tracking-tight">15,798 <span class="text-sm">円</span></span>
+                    </div>
+                    <div class="space-y-3 text-[12px] text-gray-500">
+                        <div class="flex justify-between">
+                            <span>シッティング料金</span>
+                            <span>17,750円 ⌄</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="flex items-center">サービス手数料 <span class="ml-1 border border-gray-300 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px]">?</span></span>
+                            <span>- 1,952円</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="flex items-center">往復交通費 <span class="ml-1 border border-gray-300 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px]">?</span></span>
+                            <span>0円</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-6 pt-5 border-t font-bold">
+                        <span class="text-[14px]">保護者支払額 <span class="text-[10px] font-normal text-gray-400">(税込)</span></span>
+                        <span class="text-[20px] tracking-tight">21,655 <span class="text-sm">円 ⌄</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="fixed bottom-0 w-full max-w-[414px] p-4 bg-white shadow-up z-20">
+            <button onclick="nextScreen(3)" class="btn-main">確認する</button>
+        </div>
+    </div>
+
+    <!-- Screen 3: 見積もり確認画面 -->
+    <div id="screen-3" class="screen hidden bg-[#F8F8F8] min-h-screen">
+        <div class="header bg-white">
+            <button onclick="nextScreen(2)" class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="flex-1 text-center font-bold text-[16px]">見積もり確認</div>
+            <div class="w-10"></div>
+        </div>
+        <div class="step-indicator bg-white">
+            <div class="step-dot active"></div>
+            <div class="step-dot active"><span class="step-label">確認</span></div>
+            <div class="step-dot"><span class="step-label">完了</span></div>
+        </div>
+        
+        <!-- 基本情報 -->
+        <div class="bg-white px-4 mb-2">
+            <div class="flex justify-between items-center py-5 border-b border-gray-50">
+                <span class="text-gray-400 text-sm">日時</span>
+                <span class="font-bold text-[17px]">3/18(水) 17:00 - 20:00</span>
+            </div>
+            <div class="flex justify-between items-center py-5">
+                <span class="text-gray-400 text-sm">依頼者</span>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full overflow-hidden mr-3">
+                        <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                    </div>
+                    <span class="font-bold text-[14px]">渋谷 さとみ さん</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 子ども・シッティング詳細 -->
+        <div class="bg-white p-5 mb-2">
+            <div class="font-bold text-[15px] mb-4">子ども・シッティング詳細</div>
+            <div class="space-y-4 text-[13px]">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">子ども</span>
+                    <span class="font-bold">太郎 (2歳)</span>
+                </div>
+                <div class="mt-2">
+                    <div class="text-gray-400 mb-2">シッティング内容</div>
+                    <div class="bg-[#F6F6F6] p-4 rounded-xl text-gray-600 leading-relaxed">
+                        太郎君の送迎〜自宅保育をお願いします。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 交通費詳細 -->
+        <div class="bg-white p-5 mb-2">
+            <div class="font-bold text-[15px] mb-4">往復交通費</div>
+            <div class="space-y-3 text-[13px]">
+                <div class="flex justify-between">
+                    <span class="text-gray-400">交通費合計</span>
+                    <span class="font-bold">1,000円</span>
+                </div>
+                <div class="mt-2">
+                    <div class="text-gray-400 mb-2">詳細</div>
+                    <div class="bg-[#F6F6F6] p-4 rounded-xl text-gray-600 text-[12px] leading-relaxed">
+                        行き：JR山手線 恵比寿〜池袋 (IC) 178円<br>
+                        帰り：JR山手線 池袋〜恵比寿 (IC) 178円
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 金額内訳 -->
+        <div class="bg-white p-5 mb-2">
+            <div class="font-bold text-[15px] mb-6">ご利用料金 お見積もり</div>
+            <div class="flex justify-between items-end mb-5 border-b border-gray-800 pb-4">
+                <span class="font-bold text-[16px]">受け取り金額 <span class="text-[10px] font-normal text-gray-400">(税込)</span></span>
+                <span class="text-2xl font-bold tracking-tight">15,798 <span class="text-sm">円</span></span>
+            </div>
+            
+            <div class="space-y-3 text-[12px] text-gray-500">
+                <div class="flex justify-between">
+                    <span>シッティング料金</span>
+                    <span class="font-bold text-gray-600">17,750円</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>割増料金</span>
+                    <span class="font-bold text-gray-600">+500円</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>割引料金</span>
+                    <span class="font-bold text-red-500">-0円</span>
+                </div>
+                <div class="flex justify-between pt-2 border-t font-bold text-gray-900">
+                    <span class="text-sm">保護者支払額 <span class="text-[10px] font-normal text-gray-400">(税込)</span></span>
+                    <span class="text-lg">21,655 <span class="text-xs">円 ⌄</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 備考 -->
+        <div class="bg-white p-5 pb-32 mb-2">
+            <div class="font-bold text-[15px] mb-3">備考欄</div>
+            <div class="bg-[#F6F6F6] p-4 rounded-xl text-[13px] text-gray-500 italic">
+                入力がありません
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 w-full max-w-[414px] p-4 bg-white shadow-up z-20">
+            <button onclick="nextScreen(4)" class="btn-main">見積書を送信する</button>
+        </div>
+    </div>
+
+    <!-- Screen 4: 送信完了 -->
+    <div id="screen-4" class="screen hidden min-h-screen">
+        <div class="header">
+            <button onclick="nextScreen(1)" class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="flex-1 text-center font-bold text-[16px]">予約リクエスト</div>
+            <div class="w-10"></div>
+        </div>
+        <div class="step-indicator">
+            <div class="step-dot active"></div>
+            <div class="step-dot active"></div>
+            <div class="step-dot active"><span class="step-label">完了</span></div>
+        </div>
+        <div class="flex flex-col items-center pt-28 text-center px-10">
+            <h2 class="text-[22px] font-bold text-[#CDA250] leading-normal mb-8">見積書を<br>お送りしました</h2>
+            <p class="text-[13px] text-gray-500 leading-relaxed">
+                保護者様の承認をもってご予約確定となります。
+            </p>
+        </div>
+        <div class="fixed bottom-0 w-full max-w-[414px] p-8">
+            <button onclick="nextScreen(5)" class="btn-main">保護者側の承認画面を見る</button>
+        </div>
+    </div>
+
+    <!-- Screen 5: 保護者承認画面 -->
+    <div id="screen-5" class="screen hidden bg-[#F8F8F8] min-h-screen">
+        <div class="header bg-white">
+            <button onclick="nextScreen(4)" class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="flex-1 text-center font-bold text-[16px]">予約詳細（保護者側）</div>
+            <div class="w-10"></div>
+        </div>
+        <div class="p-4 pb-32">
+            <div class="text-[10px] text-gray-300 mb-4 tracking-tighter">リクエストID : 1234567</div>
+            
+            <div class="bg-white rounded-xl p-5 mb-5 flex justify-between items-center shadow-sm">
+                <div>
+                    <div class="text-[10px] text-gray-400 mb-1">日時</div>
+                    <div class="font-bold text-[17px] text-gray-800 tracking-tight">3/18(水) 17:00 - 20:00</div>
+                </div>
+                <div class="flex flex-col items-end">
+                    <div class="text-[10px] text-gray-400 mb-1">依頼者</div>
+                    <div class="flex items-center">
+                        <div class="w-9 h-9 rounded-full overflow-hidden mr-2.5">
+                            <img src="渋谷さとみ.png" class="profile-img" alt="渋谷さとみ" onerror="this.src='https://images.unsplash.com/photo-1594132176008-617882269a9b?w=120&h=120&fit=crop'">
+                        </div>
+                        <span class="font-bold text-[13px]">渋谷 さとみ さん</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeline-card mb-5 shadow-sm">
+                <div class="timeline-dot">✓</div>
+                <div class="flex justify-between items-start mb-3">
+                    <div class="text-teal-400 font-bold text-[14px]">見積もり承認</div>
+                    <div class="text-right">
+                        <div class="text-teal-400 font-bold text-[11px]">18:19</div>
+                        <div class="text-gray-300 text-[9px]">3/11(金)</div>
+                    </div>
+                </div>
+                <p class="text-[12px] text-gray-500 leading-relaxed pr-4">
+                    見積書を確認して承認してください。24時間以内に承認されない場合、期限切れとなりキャンセル扱いとなります。
+                </p>
+                <div class="text-center text-gray-100 mt-2 text-xl">⌄</div>
+            </div>
+
+            <button class="btn-outline bg-white text-gray-600 mb-6 py-3.5 shadow-sm">予約をキャンセルする</button>
+
+            <div class="bg-white p-5 rounded-2xl mb-2 shadow-sm">
+                <div class="font-bold text-[15px] mb-4">シッティング内容</div>
+                <div class="bg-[#F6F6F6] p-4 rounded-xl text-[13px] text-gray-500 leading-relaxed">
+                    太郎君の送迎〜自宅保育をお願いします。
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl mb-2 shadow-sm">
+                <div class="font-bold text-[15px] mb-6">ご利用料金 お見積もり</div>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center text-sm border-b pb-4 border-gray-800">
+                        <span class="font-bold">合計金額 <span class="text-[10px] font-normal text-gray-400">(税込)</span></span>
+                        <span class="text-2xl font-bold tracking-tight">21,655 <span class="text-sm">円</span></span>
+                    </div>
+                    
+                    <div class="space-y-3 text-[12px] text-gray-500 pt-2">
+                        <div class="flex justify-between">
+                            <span>シッティング料金</span>
+                            <span class="font-bold text-gray-600">17,750円 ⌄</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>往復交通費</span>
+                            <span class="font-bold text-gray-600">1,000円</span>
+                        </div>
+                        <div class="bg-[#F8F8F8] p-3 rounded-lg text-[11px] leading-relaxed">
+                            行き：JR山手線 恵比寿〜...<br>帰り：JR山手線 ...〜恵比寿
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl mb-8 shadow-sm">
+                <div class="font-bold text-[14px] mb-5">各種補助制度の利用</div>
+                <div class="space-y-5">
+                    <label class="flex items-center gap-4">
+                        <input type="checkbox" class="w-6 h-6 border-gray-300 rounded accent-[#CDA250]">
+                        <div class="text-[12px] text-gray-600 flex items-center font-medium">ベビーシッター派遣事業割引券 <span class="ml-1.5 border border-gray-200 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px]">?</span></div>
+                    </label>
+                    <label class="flex items-center gap-4">
+                        <input type="checkbox" class="w-6 h-6 border-gray-300 rounded accent-[#CDA250]">
+                        <div class="text-[12px] text-gray-600 flex items-center font-medium">幼保無償化 <span class="ml-1.5 border border-gray-200 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px]">?</span></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="fixed bottom-0 w-full max-w-[414px] p-4 bg-white border-t shadow-up z-20">
+            <button onclick="alert('予約が確定しました')" class="btn-main">予約を確定する</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function nextScreen(num) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        const target = document.getElementById('screen-' + num);
+        target.classList.remove('hidden');
+        document.getElementById('app').scrollTop = 0;
+    }
+
+    document.querySelectorAll('select').forEach(sel => {
+        sel.addEventListener('change', function() {
+            if (this.value === "") {
+                this.classList.add('text-gray-400');
+            } else {
+                this.classList.remove('text-gray-400');
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
